@@ -1,0 +1,248 @@
+---
+title: "Wer macht das?"
+subtitle: "Geschlechterunterschiede in der Zeitverwendung in Österreich"
+execute:
+  eval: true
+  echo: false
+  output: true
+  warning: false
+  error: true
+  include: true
+---
+
+Zeit ist eine begrenzte Ressource – und sie ist ungleich verteilt. Die Zeitverwendungserhebung der Statistik Austria zeigt: Frauen leisten nach wie vor den Großteil der unbezahlten Arbeit in Österreich, während Männer mehr Zeit in Erwerbsarbeit verbringen. Diese unsichtbare Arbeit – Kochen, Putzen, Kinderbetreuung, Pflege – hält unsere Gesellschaft am Laufen, wird aber weder entlohnt noch in wirtschaftlichen Kennzahlen erfasst.
+
+Diese Visualisierung macht die Ungleichverteilung sichtbar. Jede Figur steht für rund `{ojs} width > 1200 ? "zwei" : width > 600 ? "vier" : "zehn"`  von hundert Personen: <span style="color: #c1272d; font-weight: bold;">rot</span> für Frauen, <span style="color: #1e3a5f; font-weight: bold;">blau</span> für Männer. Auf einen Blick zeigt sich, wer welche Tätigkeiten übernimmt. Im Auswahlmenü sind jene Aktivitäten farblich hervorgehoben, bei denen besonders große Geschlechterunterschiede bestehen. 
+
+{{< include src/00_libs.qmd >}}
+{{< include src/00_utils.qmd >}}
+
+```{ojs}
+makeIsoline = (params = {}) => {
+  const {
+    data = null,
+    vizWidth = width,
+    cellWidth = 18,
+    cellHeight = 100,
+    personWidth = 10,
+    personHeight = 100,
+    persPerLineValue = Math.floor(vizWidth / cellWidth) - 1,
+    defaultShapes = "abcdefghilmnopqSBDEGHIJKLNOPRSTVWXYZ",
+    defaultFillHighlight = "steelblue",
+    defaultFillNormal = "#ddd",
+    randomOrder = true,  // true for random, false for sequential
+    groupByKey = false   // true to group subkeys under each key
+  } = params;
+
+  // Group data by key if groupByKey is true
+  const dataGroups = groupByKey
+    ? Array.from(d3.group(data, d => d.key), ([key, items]) => ({ key, items }))
+    : data.map(item => ({ key: item.key, items: [item] }));
+
+  // Create rows for each group
+  const rows = dataGroups.map((group, groupIndex) => {
+    const groupRows = group.items.map((item, rowIndex) => {
+    const highlightValue = item.value;
+    const shapes = item.shapes || defaultShapes;
+    const fillHighlight = item.fillHighlight || defaultFillHighlight;
+    const fillNormal = item.fillNormal || defaultFillNormal;
+    const subkey = item.subkey || "Personen";
+    const highlightCountValue = Math.round(persPerLineValue * highlightValue);
+
+    // Generate person with custom alphabet
+    const generatePersonCustom = seed => {
+      const avatarChoices = shapes;
+      const id = "person_" + d3.format("0>4")(seed) + "_row" + rowIndex;
+      const avatar = randomOrder
+        ? avatarChoices[parseInt(md5(id).slice(0, 2), 16) % avatarChoices.length]
+        : avatarChoices[seed % avatarChoices.length];
+      return {
+        id,
+        avatar,
+        highlight: seed < highlightCountValue ? true : false
+      };
+    };
+
+    // Render person with custom colors
+    const renderPersonCustom = (p) => {
+      const fillColor = p.highlight ? fillHighlight : fillNormal;
+      const strokeColor = "#fff";
+
+      return svg`
+        <g class="person">
+          <text y="0"
+            style="font-size: ${personHeight}px; font-family: Isotype"
+            fill="${fillColor}"
+            stroke="${strokeColor}"
+            stroke-width="3">
+            ${p.avatar}
+          </text>
+
+        <text y="0"
+          style="font-size: ${personHeight}px; font-family: Isotype;"
+          fill="${fillColor}">
+            ${p.avatar}
+        </text>
+        </g>
+      `;
+    };
+
+    // Create the SVG visualization for this row
+    const people = d3.range(persPerLineValue).map(generatePersonCustom);
+    const height = cellHeight;
+
+    const vizSvg = html`
+      <svg width="${vizWidth}" height="${height}">
+        <g transform="translate(0, 80)">
+          ${people.map((p, i) => ({ p, i })).reverse().map(
+            ({ p, i }) => svg`
+            <g transform="translate(${i * cellWidth}, 0)">
+              ${renderPersonCustom(p)}
+            </g>`
+          )}
+        </g>
+      </svg>
+    `;
+
+    // Create the percentage span
+    const percentageText = html`
+      <span style="color: ${fillHighlight}; font-family: DM Sans; font-weight: 280;">
+        ${Math.round(highlightValue * 100)} von 100 ${subkey}
+      </span>
+    `;
+
+    // Return row with label
+    return html`
+      <div style="margin-bottom: 6px;">
+        ${groupByKey && rowIndex === 0 ? html`<h3 style="font-family: DM Sans; font-weight: 600; margin: 0 0 12px 0;">${group.key}</h3>` : html``}
+        ${!groupByKey ? html`<h3 style="font-family: DM Sans; font-weight: 600; margin: 0 0 12px 0;">${item.key}</h3>` : html``}
+        ${percentageText}
+        ${vizSvg}
+      </div>
+    `;
+    });
+
+    // Return group container
+    return html`
+      <div style="margin-bottom: ${groupByKey ? '0px' : '0px'};">
+        ${groupRows}
+      </div>
+    `;
+  });
+
+  // Return all rows in a container
+  return html`
+    <div style="margin: 0px 0 0 0">
+      ${rows}
+    </div>
+  `;
+}
+```
+
+```{ojs}
+zeitverwendung = FileAttachment("data/zeitverwendung_long.csv").csv({typed: true})
+```
+
+```{ojs}
+// Prepare all data for visualization
+// Using Otto Neurath Isotype-style colors: red for women, blue for men
+viz_data = zeitverwendung.map(d => ({
+  key: d.aktivitaet,
+  subkey: d.geschlecht,
+  geschlecht: d.geschlecht,
+  value: d.anteil_ausuebende_prozent / 100,
+  shapes: getShapes(d.aktivitaet, d.kategorie, d.geschlecht),
+  fillHighlight: d.geschlecht === "Frauen" ? "#c1272d" : "#1e3a5f",  // Neurath red / Neurath blue
+  fillNormal: d.geschlecht === "Frauen" ? "#e8d5d5" : "#d5dce3"      // Light tints
+}))
+```
+
+```{ojs}
+// Build groups from kategorie column, marking high gender differences
+aktivitaetGroups = {
+  const grouped = d3.group(zeitverwendung, d => d.kategorie);
+  const thresholdAbs = 5;   // percentage points (absolute difference)
+  const thresholdRel = 50;  // percent (relative difference)
+
+  return Array.from(grouped, ([kategorie, items]) => ({
+    label: kategorie,
+    options: [...new Set(items.map(d => d.aktivitaet))].map(aktivitaet => {
+      // Get the first row for this activity (difference is the same for both genders)
+      const row = items.find(d => d.aktivitaet === aktivitaet);
+      const diffAbs = row?.differenz_anteil || 0;
+      const diffRel = row?.differenz_rel || 0;
+      const absDiffAbs = Math.abs(diffAbs);
+      const absDiffRel = Math.abs(diffRel);
+
+      // Mark as highlighted if absolute difference > 5pp OR relative difference >= 50%
+      let highlight = null;
+      let marker = "";
+      if (absDiffAbs > thresholdAbs || absDiffRel >= thresholdRel) {
+        highlight = diffAbs > 0 ? "female" : "male";
+        marker = diffAbs > 0 ? " (F+)" : " (M+)";
+      }
+
+      return {
+        value: aktivitaet,
+        label: aktivitaet + marker,
+        highlight: highlight
+      };
+    })
+  }));
+}
+
+viewof selectAktivitaet = groupedSelect({
+  value: "Erwerbstätigkeit - Gesamt",
+  groups: aktivitaetGroups,
+  title: "Wählen sie eine Aktivität: ​ "
+})
+```
+
+---
+
+```{ojs .mainViz}
+isolines = makeIsoline({
+  data: viz_data.filter(d => d.key == selectAktivitaet),
+  persPerLineValue: width > 1200 ? 50 : width > 600 ? 25 : 10,
+  cellWidth: width > 1200 ? 23 : width > 600 ? 23 : 28,
+  randomOrder: false,  // Set to true for random order, false for sequential
+  groupByKey: true     // Set to true to group subkeys (gender) under each key (activity)
+})
+
+selectedData = zeitverwendung.filter(d => d.aktivitaet === selectAktivitaet)
+frauenData = selectedData.find(d => d.geschlecht === "Frauen")
+maennerData = selectedData.find(d => d.geschlecht === "Männer")
+
+// Calculate differences
+diffAbs = frauenData?.anteil_ausuebende_prozent - maennerData?.anteil_ausuebende_prozent
+diffRel = frauenData?.differenz_rel
+
+aktivitaetLabel = selectAktivitaet.replace(' - Gesamt', '')
+
+htl.html`<p style="margin: 0px;"><span style="color: #c1272d; font-weight: bold;">${Math.round(frauenData?.anteil_ausuebende_prozent)}%</span> aller <span style="color: #c1272d; font-weight: bold;">Frauen</span> geben an, in einer Woche Zeit mit <strong>${aktivitaetLabel}</strong> zu verbringen. Frauen verbringen im Schnitt <span style="color: #c1272d; font-weight: bold;">${frauenData?.zeit_ausuebende_h.toFixed(1).replace('.', ',')} Stunden</span> damit. Für <span style="color: #1e3a5f; font-weight: bold;">Männer</span> belaufen sich diese Zahlen auf <span style="color: #1e3a5f; font-weight: bold;">${Math.round(maennerData?.anteil_ausuebende_prozent)}%</span> und <span style="color: #1e3a5f; font-weight: bold;">${maennerData?.zeit_ausuebende_h.toFixed(1).replace('.', ',')} Stunden</span>. Der Unterschied beträgt ${Math.abs(diffAbs).toFixed(1).replace('.', ',')} Prozentpunkte bzw. ${Math.abs(diffRel).toFixed(0)}%. ${diffAbs !== 0 ? `${diffAbs > 0 ? 'Frauen' : 'Männer'} üben die Tätigkeit häufiger aus.` : ''}</p>`
+```
+
+<p style="margin-top:12px">Datenquelle: [Statistik Austria – Zeitverwendung](https://www.statistik.at/statistiken/bevoelkerung-und-soziales/zeitverwendung){target="_blank"}</p>
+
+<!-- All possible Icons:
+
+<p class="testIcons">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
+
+<p class="testIcons">abcdefghijklmnopqrstuvwxyz</p>
+
+<p class="testIcons">1234567890</p>
+
+<p class="testIcons">!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~</p>
+
+<p class="testIcons">€£¥¢$</p>
+
+<p class="testIcons">©®§°</p>
+
+<p class="testIcons">ÀÁÂÃÄÅÆÇÈ</p> -->
+
+---
+
+<h3>Danksagung</h3>
+
+- Idee basierend auf Umsetzung von [Basile Simon](https://observablehq.com/@basilesimon/isotype-sketch-a-wee-people-bar-chart){target="_blank"}
+- Isotype Font von [Ric Stephens](https://www.dafont.com/isotype.font){target="_blank"}
