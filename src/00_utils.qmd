@@ -383,61 +383,29 @@ groupedSelect = (config = {}) => {
 ```
 
 ```{ojs}
-// Define shape lookup by kategorie (defaults) and aktivitaet (overrides)
-// Lookup priority: aktivitaet+geschlecht > kategorie+geschlecht > geschlecht fallback
-
+// Shape lookup by item name
 shapeLookupKategorie = new Map([
-  // Essen und andere persönliche Tätigkeiten
-  ["Essen und andere persönliche Tätigkeiten_Frauen", "echadfba"],
-  ["Essen und andere persönliche Tätigkeiten_Männer", "REGATNGH"],
+  // Militärausgaben
+  ["Kampfflugzeug",       "}"],
+  ["Panzer",         "{"],
+  ["Bombe",       "~"],
+  ["Soldat",         "_"],
+  ["Flugabwehrgeschütz", "|"],
 
-  // Erwerbstätigkeit
-  ["Erwerbstätigkeit_Frauen", "coilmnpq>"],
-  ["Erwerbstätigkeit_Männer", "PTJFWY<"],
-
-  // Aus- und Weiterbildung
-  ["Aus- und Weiterbildung_Frauen", "Bhapb"],
-  ["Aus- und Weiterbildung_Männer", "AHDG"],
-
-  // Sorgearbeit in Haushalt und Familie
-  ["Sorgearbeit in Haushalt und Familie_Frauen", "a27b1b14bba2a6"],
-  ["Sorgearbeit in Haushalt und Familie_Männer", "G1J26PJ2G7P3G86"],
-
-  // Freiwilligentätigkeiten
-  ["Freiwilligentätigkeiten_Frauen", "jiab"],
-  ["Freiwilligentätigkeiten_Männer", "LGPGUPL"],
-
-  // Soziale Kontakte und Freizeit
-  ["Soziale Kontakte und Freizeit_Frauen", "echadfbagB"],
-  ["Soziale Kontakte und Freizeit_Männer", "REGZATINGH"],
-
-  // Nicht näher bestimmte Zeitverwendung
-  ["Nicht näher bestimmte Zeitverwendung_Frauen", "abcdefghilmnopqB"],
-  ["Nicht näher bestimmte Zeitverwendung_Männer", "SDEGHIJKLNOPRSTVWZ"],
+  // Sozialausgaben
+  ["Pflegekräfte",       "iGqab;Jp"],
+  ["LehrerInnen", "BhNAHjc"],
+  ["Studienplätze",   "DH"],
+  ["Schulplätze",     "1234567890"],
+  ["Bildung",           "BhADG"],
 ])
 
-// Override shapes at aktivitaet level (optional - add specific activities here)
-shapeLookupAktivitaet = new Map([
-  // Example: specific activity overrides
-  // ["Nahrungsmittelzubereitung_Frauen", "abc"],
-  // ["Nahrungsmittelzubereitung_Männer", "ABC"],
-])
+// Default fallback
+shapeLookupDefault = "abcdefghilmnopqSBDEGHIJKLNOPRSTVWXYZ"
 
-// Default fallback by gender
-shapeLookupDefault = new Map([
-  ["Frauen", "abcdefghilmnopqB"],
-  ["Männer", "SDEGHIJKLNOPRSTVWZ"],
-])
-
-// Helper function to get shapes - checks aktivitaet first, then kategorie, then default
-getShapes = (aktivitaet, kategorie, geschlecht) => {
-  const aktivitaetKey = `${aktivitaet}_${geschlecht}`;
-  const kategorieKey = `${kategorie}_${geschlecht}`;
-
-  return shapeLookupAktivitaet.get(aktivitaetKey)
-    || shapeLookupKategorie.get(kategorieKey)
-    || shapeLookupDefault.get(geschlecht)
-    || "abcdefghilmnopqSBDEGHIJKLNOPRSTVWXYZ";
+// Helper function to get shapes by item name
+getShapes = (name) => {
+  return shapeLookupKategorie.get(name) || shapeLookupDefault;
 }
 ```
 

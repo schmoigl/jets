@@ -1,6 +1,6 @@
 ---
-title: "Wer macht das?"
-subtitle: "Geschlechterunterschiede in der Zeitverwendung in Österreich"
+title: "Was könnte man stattdessen kaufen?"
+subtitle: "Militär- vs. Sozialausgaben in Österreich"
 execute:
   eval: true
   echo: false
@@ -10,9 +10,7 @@ execute:
   include: true
 ---
 
-Zeit ist eine begrenzte Ressource – und sie ist ungleich verteilt. Die Zeitverwendungserhebung der Statistik Austria zeigt: Frauen leisten nach wie vor den Großteil der unbezahlten Arbeit in Österreich, während Männer mehr Zeit in Erwerbsarbeit verbringen. Diese unsichtbare Arbeit – Kochen, Putzen, Kinderbetreuung, Pflege – hält unsere Gesellschaft am Laufen, wird aber weder entlohnt noch in wirtschaftlichen Kennzahlen erfasst.
-
-Diese Visualisierung macht die Ungleichverteilung sichtbar. Jede Figur steht für rund `{ojs} width > 1200 ? "zwei" : width > 600 ? "vier" : "zehn"`  von hundert Personen: <span style="color: #c1272d; font-weight: bold;">rot</span> für Frauen, <span style="color: #1e3a5f; font-weight: bold;">blau</span> für Männer. Auf einen Blick zeigt sich, wer welche Tätigkeiten übernimmt. Im Auswahlmenü sind jene Aktivitäten farblich hervorgehoben, bei denen besonders große Geschlechterunterschiede bestehen. 
+Staatsausgaben spiegeln politische Prioritäten wider. Diese Visualisierung stellt ausgewählten Militärausgaben gegenüber, wie viel davon mit demselben Budget im Sozialbereich finanziert werden könnte. Oben steht eine <span style="color: #c1272d; font-weight: bold;">Militärausgabe</span>, darunter die Anzahl der <span style="color: #1e3a5f; font-weight: bold;">Sozialausgaben</span>, die mit demselben Budget möglich wären. Mit den Auswahlmenüs lassen sich verschiedene Kombinationen vergleichen.
 
 {{< include src/00_libs.qmd >}}
 {{< include src/00_utils.qmd >}}
@@ -31,7 +29,8 @@ makeIsoline = (params = {}) => {
     defaultFillHighlight = "steelblue",
     defaultFillNormal = "#ddd",
     randomOrder = true,  // true for random, false for sequential
-    groupByKey = false   // true to group subkeys under each key
+    groupByKey = false,  // true to group subkeys under each key
+    showPercentage = true
   } = params;
 
   // Group data by key if groupByKey is true
@@ -46,8 +45,9 @@ makeIsoline = (params = {}) => {
     const shapes = item.shapes || defaultShapes;
     const fillHighlight = item.fillHighlight || defaultFillHighlight;
     const fillNormal = item.fillNormal || defaultFillNormal;
-    const subkey = item.subkey || "Personen";
-    const highlightCountValue = Math.round(persPerLineValue * highlightValue);
+    const subkey = item.subkey ?? "Personen";
+    const rowPersPerLine = item.persPerLine !== undefined ? item.persPerLine : persPerLineValue;
+    const highlightCountValue = Math.round(rowPersPerLine * highlightValue);
 
     // Generate person with custom alphabet
     const generatePersonCustom = seed => {
@@ -88,7 +88,7 @@ makeIsoline = (params = {}) => {
     };
 
     // Create the SVG visualization for this row
-    const people = d3.range(persPerLineValue).map(generatePersonCustom);
+    const people = d3.range(rowPersPerLine).map(generatePersonCustom);
     const height = cellHeight;
 
     const vizSvg = html`
@@ -104,19 +104,19 @@ makeIsoline = (params = {}) => {
       </svg>
     `;
 
-    // Create the percentage span
+    // Create the label span
     const percentageText = html`
       <span style="color: ${fillHighlight}; font-family: DM Sans; font-weight: 280;">
-        ${Math.round(highlightValue * 100)} von 100 ${subkey}
+        ${subkey}
       </span>
     `;
 
     // Return row with label
     return html`
-      <div style="margin-bottom: 6px;">
+      <div style="margin-bottom: 0px;">
         ${groupByKey && rowIndex === 0 ? html`<h3 style="font-family: DM Sans; font-weight: 600; margin: 0 0 12px 0;">${group.key}</h3>` : html``}
         ${!groupByKey ? html`<h3 style="font-family: DM Sans; font-weight: 600; margin: 0 0 12px 0;">${item.key}</h3>` : html``}
-        ${percentageText}
+        ${showPercentage ? percentageText : html``}
         ${vizSvg}
       </div>
     `;
@@ -140,91 +140,79 @@ makeIsoline = (params = {}) => {
 ```
 
 ```{ojs}
-zeitverwendung = FileAttachment("data/zeitverwendung_long.csv").csv({typed: true})
+ausgaben_data = FileAttachment("data/data_long.csv").csv({typed: true})
 ```
 
 ```{ojs}
-// Prepare all data for visualization
-// Using Otto Neurath Isotype-style colors: red for women, blue for men
-viz_data = zeitverwendung.map(d => ({
-  key: d.aktivitaet,
-  subkey: d.geschlecht,
-  geschlecht: d.geschlecht,
-  value: d.anteil_ausuebende_prozent / 100,
-  shapes: getShapes(d.aktivitaet, d.kategorie, d.geschlecht),
-  fillHighlight: d.geschlecht === "Frauen" ? "#c1272d" : "#1e3a5f",  // Neurath red / Neurath blue
-  fillNormal: d.geschlecht === "Frauen" ? "#e8d5d5" : "#d5dce3"      // Light tints
-}))
+viewof selectMilitaer = Inputs.select(
+  ausgaben_data.filter(d => d.ausgabenart === "Militärausgabe").map(d => d.name),
+  { label: "Militärausgabe: " }
+)
+
+viewof selectSozial = Inputs.select(
+  ausgaben_data.filter(d => d.ausgabenart === "Sozialausgabe").map(d => d.name),
+  { label: "Sozialausgabe: " }
+)
 ```
 
 ```{ojs}
-// Build groups from kategorie column, marking high gender differences
-aktivitaetGroups = {
-  const grouped = d3.group(zeitverwendung, d => d.kategorie);
-  const thresholdAbs = 5;   // percentage points (absolute difference)
-  const thresholdRel = 50;  // percent (relative difference)
+militaerMio = ausgaben_data.find(d => d.name === selectMilitaer)?.ausgaben_mio || 0
+militaer_viz = [{ key: "Militärausgabe", subkey: "1 " + selectMilitaer + " (" + militaerMio + " Mio. €)", value: 1, shapes: getShapes(selectMilitaer), fillHighlight: "#c1272d", fillNormal: "#e8d5d5" }]
+```
 
-  return Array.from(grouped, ([kategorie, items]) => ({
-    label: kategorie,
-    options: [...new Set(items.map(d => d.aktivitaet))].map(aktivitaet => {
-      // Get the first row for this activity (difference is the same for both genders)
-      const row = items.find(d => d.aktivitaet === aktivitaet);
-      const diffAbs = row?.differenz_anteil || 0;
-      const diffRel = row?.differenz_rel || 0;
-      const absDiffAbs = Math.abs(diffAbs);
-      const absDiffRel = Math.abs(diffRel);
+```{ojs}
+sozialMio = ausgaben_data.find(d => d.name === selectSozial)?.ausgaben_mio || 0
+sozial_viz = {
+  const iconsTotal = Math.round(sozialMio > 0 ? militaerMio / sozialMio : 0);
+  const lineSize = 50;
+  const shapes = getShapes(selectSozial);
+  const label = iconsTotal + " " + selectSozial + " (1 = " + sozialMio + " Mio. €)";
+  const numFullLines = Math.floor(iconsTotal / lineSize);
+  const rem = iconsTotal % lineSize;
 
-      // Mark as highlighted if absolute difference > 5pp OR relative difference >= 50%
-      let highlight = null;
-      let marker = "";
-      if (absDiffAbs > thresholdAbs || absDiffRel >= thresholdRel) {
-        highlight = diffAbs > 0 ? "female" : "male";
-        marker = diffAbs > 0 ? " (F+)" : " (M+)";
-      }
-
-      return {
-        value: aktivitaet,
-        label: aktivitaet + marker,
-        highlight: highlight
-      };
-    })
-  }));
+  const lines = [];
+  for (let i = 0; i < numFullLines; i++) {
+    lines.push({ key: "Sozialausgabe", subkey: i === 0 ? label : "", value: 1, persPerLine: lineSize, shapes, fillHighlight: "#1e3a5f", fillNormal: "#d5dce3" });
+  }
+  if (rem > 0) {
+    lines.push({ key: "Sozialausgabe", subkey: lines.length === 0 ? label : "", value: 1, persPerLine: rem, shapes, fillHighlight: "#1e3a5f", fillNormal: "#d5dce3" });
+  }
+  if (lines.length === 0) {
+    lines.push({ key: "Sozialausgabe", subkey: "0 " + selectSozial, value: 0, persPerLine: 1, shapes, fillHighlight: "#1e3a5f", fillNormal: "#d5dce3" });
+  }
+  return lines;
 }
-
-viewof selectAktivitaet = groupedSelect({
-  value: "Erwerbstätigkeit - Gesamt",
-  groups: aktivitaetGroups,
-  title: "Wählen sie eine Aktivität: ​ "
-})
 ```
 
 ---
 
 ```{ojs .mainViz}
-isolines = makeIsoline({
-  data: viz_data.filter(d => d.key == selectAktivitaet),
-  persPerLineValue: width > 1200 ? 50 : width > 600 ? 25 : 10,
-  cellWidth: width > 1200 ? 23 : width > 600 ? 23 : 28,
-  randomOrder: false,  // Set to true for random order, false for sequential
-  groupByKey: true     // Set to true to group subkeys (gender) under each key (activity)
+makeIsoline({
+  data: militaer_viz,
+  persPerLineValue: 1,
+  cellWidth: width > 600 ? 23 : 28,
+  randomOrder: true,
+  groupByKey: false,
+  showPercentage: true
 })
-
-selectedData = zeitverwendung.filter(d => d.aktivitaet === selectAktivitaet)
-frauenData = selectedData.find(d => d.geschlecht === "Frauen")
-maennerData = selectedData.find(d => d.geschlecht === "Männer")
-
-// Calculate differences
-diffAbs = frauenData?.anteil_ausuebende_prozent - maennerData?.anteil_ausuebende_prozent
-diffRel = frauenData?.differenz_rel
-
-aktivitaetLabel = selectAktivitaet.replace(' - Gesamt', '')
-
-htl.html`<p style="margin: 0px;"><span style="color: #c1272d; font-weight: bold;">${Math.round(frauenData?.anteil_ausuebende_prozent)}%</span> aller <span style="color: #c1272d; font-weight: bold;">Frauen</span> geben an, in einer Woche Zeit mit <strong>${aktivitaetLabel}</strong> zu verbringen. Frauen verbringen im Schnitt <span style="color: #c1272d; font-weight: bold;">${frauenData?.zeit_ausuebende_h.toFixed(1).replace('.', ',')} Stunden</span> damit. Für <span style="color: #1e3a5f; font-weight: bold;">Männer</span> belaufen sich diese Zahlen auf <span style="color: #1e3a5f; font-weight: bold;">${Math.round(maennerData?.anteil_ausuebende_prozent)}%</span> und <span style="color: #1e3a5f; font-weight: bold;">${maennerData?.zeit_ausuebende_h.toFixed(1).replace('.', ',')} Stunden</span>. Der Unterschied beträgt ${Math.abs(diffAbs).toFixed(1).replace('.', ',')} Prozentpunkte bzw. ${Math.abs(diffRel).toFixed(0)}%. ${diffAbs !== 0 ? `${diffAbs > 0 ? 'Frauen' : 'Männer'} üben die Tätigkeit häufiger aus.` : ''}</p>`
 ```
+
+```{ojs .mainViz}
+makeIsoline({
+  data: sozial_viz,
+  cellWidth: width > 600 ? 23 : 28,
+  randomOrder: true,
+  groupByKey: true,
+  showPercentage: true
+})
+```
+
+
+---
 
 <p style="margin-top:12px">Datenquelle: [Statistik Austria – Zeitverwendung](https://www.statistik.at/statistiken/bevoelkerung-und-soziales/zeitverwendung){target="_blank"}</p>
 
-<!-- All possible Icons:
+All possible Icons:
 
 <p class="testIcons">ABCDEFGHIJKLMNOPQRSTUVWXYZ</p>
 
@@ -238,11 +226,4 @@ htl.html`<p style="margin: 0px;"><span style="color: #c1272d; font-weight: bold;
 
 <p class="testIcons">©®§°</p>
 
-<p class="testIcons">ÀÁÂÃÄÅÆÇÈ</p> -->
-
----
-
-<h3>Danksagung</h3>
-
-- Idee basierend auf Umsetzung von [Basile Simon](https://observablehq.com/@basilesimon/isotype-sketch-a-wee-people-bar-chart){target="_blank"}
-- Isotype Font von [Ric Stephens](https://www.dafont.com/isotype.font){target="_blank"}
+<p class="testIcons">ÀÁÂÃÄÅÆÇÈ</p>
