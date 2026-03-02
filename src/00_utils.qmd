@@ -395,9 +395,7 @@ shapeLookupKategorie = new Map([
   // Sozialausgaben
   ["Pflegekräfte",       "iGqab;Jp"],
   ["LehrerInnen", "BhNAHjc"],
-  ["Studienplätze",   "DH"],
-  ["Schulplätze",     "1234567890"],
-  ["Bildung",           "BhADG"],
+  ["Schul- und Studienplätze",     "DH1234567890"],
 ])
 
 // Default fallback
