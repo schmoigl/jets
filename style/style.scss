@@ -1,14 +1,14 @@
 /*-- scss:defaults --*/
-$font-family-sans-serif: "DM Sans";
+$font-family-sans-serif: "League Spartan";
 $font-weight-base: 280;
-$headings-font-family: "DM Sans";
+$headings-font-family: "League Spartan";
 $headings-font-weight: 600;
 $logo1-url: 'img/fuzzy-logo-small.svg';
 $logo2-url: 'img/logo-100.svg';
 $logo-width: 150px;
 $logo-height: 40px;
 $animation-duration: 0.7s;
-$color-frauen: #c1272d;
+$color-frauen: #D62021;
 $link-color: $color-frauen;
 
 /*-- scss:rules --*/
@@ -20,21 +20,14 @@ $link-color: $color-frauen;
 }
 
 @font-face {
-    font-family: 'DM Sans';
-    src: url('style/DMSans-VariableFont_opsz,wght.ttf') format('truetype');
+    font-family: 'League Spartan';
+    src: url('style/LeagueSpartan-VariableFont_wght.ttf') format('truetype');
     font-weight: 100 900;
     font-style: normal;
 }
 
-@font-face {
-    font-family: 'DM Sans';
-    src: url('style/DMSans-Italic-VariableFont_opsz,wght.ttf') format('truetype');
-    font-weight: 100 900;
-    font-style: italic;
-}
-
 form, output {
-    font-family: "DM Sans" !important;
+    font-family: "League Spartan" !important;
     font-weight: 280 !important;
     font-size: 18px !important;
     overflow: visible !important;
@@ -67,7 +60,7 @@ form, output {
         right: 24px;
         bottom: -2px;
         height: 8px;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 6'%3E%3Cpath d='M0 4 Q 5 0, 10 4 T 20 4' stroke='%23c1272d' stroke-width='2' fill='none'/%3E%3C/svg%3E");
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 6'%3E%3Cpath d='M0 4 Q 5 0, 10 4 T 20 4' stroke='%23D62021' stroke-width='2' fill='none'/%3E%3C/svg%3E");
         background-repeat: repeat-x;
         background-size: 14px 6px;
         pointer-events: none;
@@ -136,11 +129,11 @@ form, output {
 }
 
 .select-militaer::after {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 6'%3E%3Cpath d='M0 4 L5 0 L10 4 L15 0 L20 4' stroke='%23c1272d' stroke-width='2' fill='none'/%3E%3C/svg%3E") !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 6'%3E%3Cpath d='M0 4 L5 0 L10 4 L15 0 L20 4' stroke='%23D62021' stroke-width='2' fill='none'/%3E%3C/svg%3E") !important;
 }
 
 .select-sozial::after {
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 6'%3E%3Cpath d='M0 4 Q 5 0, 10 4 T 20 4' stroke='%231e3a5f' stroke-width='2' fill='none'/%3E%3C/svg%3E") !important;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 6'%3E%3Cpath d='M0 4 Q 5 0, 10 4 T 20 4' stroke='%23237BBD' stroke-width='2' fill='none'/%3E%3C/svg%3E") !important;
 }
 
 // Global select override for Observable/Quarto - hide scrollbar

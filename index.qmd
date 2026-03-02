@@ -10,7 +10,7 @@ execute:
   include: true
 ---
 
-Staatsausgaben spiegeln politische Prioritäten wider. Diese Visualisierung stellt ausgewählten Militärausgaben gegenüber, wie viel davon mit demselben Budget im Sozialbereich finanziert werden könnte. Oben steht eine <span style="color: #c1272d; font-weight: bold;">Militärausgabe</span>, darunter die Anzahl der <span style="color: #1e3a5f; font-weight: bold;">Sozialausgaben</span>, die mit demselben Budget möglich wären. Mit den Auswahlmenüs lassen sich verschiedene Kombinationen vergleichen.
+Staatsausgaben spiegeln politische Prioritäten wider. Diese Visualisierung stellt ausgewählten Militärausgaben gegenüber, wie viel davon mit demselben Budget im Sozialbereich finanziert werden könnte. Oben steht eine <span style="color: #D62021; font-weight: bold;">Militärausgabe</span>, darunter die Anzahl der <span style="color: #237BBD; font-weight: bold;">Sozialausgaben</span>, die mit demselben Budget möglich wären. Mit den Auswahlmenüs lassen sich verschiedene Kombinationen vergleichen.
 
 Vorsichtig: Aktuell keine echten Daten!
 
@@ -108,7 +108,7 @@ makeIsoline = (params = {}) => {
 
     // Create the label span
     const percentageText = html`
-      <span style="color: ${fillHighlight}; font-family: DM Sans; font-weight: 280;">
+      <span style="color: ${fillHighlight}; font-family: League Spartan; font-weight: 280;">
         ${subkey}
       </span>
     `;
@@ -116,8 +116,8 @@ makeIsoline = (params = {}) => {
     // Return row with label
     return html`
       <div style="margin-bottom: 0px;">
-        ${groupByKey && rowIndex === 0 ? html`<h3 style="font-family: DM Sans; font-weight: 600; margin: 0 0 12px 0;">${group.key}</h3>` : html``}
-        ${!groupByKey ? html`<h3 style="font-family: DM Sans; font-weight: 600; margin: 0 0 12px 0;">${item.key}</h3>` : html``}
+        ${groupByKey && rowIndex === 0 ? html`<h3 style="font-family: League Spartan; font-weight: 600; margin: 0 0 12px 0;">${group.key}</h3>` : html``}
+        ${!groupByKey ? html`<h3 style="font-family: League Spartan; font-weight: 600; margin: 0 0 12px 0;">${item.key}</h3>` : html``}
         ${showPercentage ? percentageText : html``}
         ${vizSvg}
       </div>
@@ -185,7 +185,7 @@ viewof selectSozial = {
 
 ```{ojs}
 militaerMio = ausgaben_data.find(d => d.name === selectMilitaer)?.ausgaben_mio || 0
-militaer_viz = [{ key: "Militärausgabe", subkey: "1 " + selectMilitaer + " (" + militaerMio + " Mio. €)", value: 1, shapes: getShapes(selectMilitaer), fillHighlight: "#c1272d", fillNormal: "#e8d5d5" }]
+militaer_viz = [{ key: "Militärausgabe", subkey: "1 " + selectMilitaer + " (" + militaerMio + " Mio. €)", value: 1, shapes: getShapes(selectMilitaer), fillHighlight: "#D62021", fillNormal: "#e8d5d5" }]
 ```
 
 ```{ojs}
@@ -200,13 +200,13 @@ sozial_viz = {
 
   const lines = [];
   for (let i = 0; i < numFullLines; i++) {
-    lines.push({ key: "Sozialausgabe", subkey: i === 0 ? label : "", value: 1, persPerLine: lineSize, shapes, fillHighlight: "#1e3a5f", fillNormal: "#d5dce3" });
+    lines.push({ key: "Sozialausgabe", subkey: i === 0 ? label : "", value: 1, persPerLine: lineSize, shapes, fillHighlight: "#237BBD", fillNormal: "#d5dce3" });
   }
   if (rem > 0) {
-    lines.push({ key: "Sozialausgabe", subkey: lines.length === 0 ? label : "", value: 1, persPerLine: rem, shapes, fillHighlight: "#1e3a5f", fillNormal: "#d5dce3" });
+    lines.push({ key: "Sozialausgabe", subkey: lines.length === 0 ? label : "", value: 1, persPerLine: rem, shapes, fillHighlight: "#237BBD", fillNormal: "#d5dce3" });
   }
   if (lines.length === 0) {
-    lines.push({ key: "Sozialausgabe", subkey: "0 " + selectSozial, value: 0, persPerLine: 1, shapes, fillHighlight: "#1e3a5f", fillNormal: "#d5dce3" });
+    lines.push({ key: "Sozialausgabe", subkey: "0 " + selectSozial, value: 0, persPerLine: 1, shapes, fillHighlight: "#237BBD", fillNormal: "#d5dce3" });
   }
   return lines;
 }
@@ -214,7 +214,7 @@ sozial_viz = {
 
 ```{ojs .mainViz}
 {
-  const colMilitaer = 240;
+  const colMilitaer = 260;
   const gap = 32;
   const marginRight = 24;
   const colSozial = width - colMilitaer - gap - marginRight;
