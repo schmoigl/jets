@@ -1,0 +1,9 @@
+ausgabenart,name,ausgaben_mio
+Militärausgabe,Kampfflugzeug,90
+Militärausgabe,Panzer,30
+Militärausgabe,Bombe,3
+Militärausgabe,Soldat,0.7
+Militärausgabe,Flugabwehrgeschütz,32
+Sozialausgabe,Pflegekräfte,0.2
+Sozialausgabe,LehrerInnen,0.3
+Sozialausgabe,Schul- und Studienplätze,0.05

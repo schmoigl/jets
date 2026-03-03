@@ -1,0 +1,8 @@
+
+
+```{ojs}
+//| echo: false
+//| warning: false
+//| output: false
+d3 = require("d3@6")
+```
