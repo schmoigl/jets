@@ -386,16 +386,16 @@ groupedSelect = (config = {}) => {
 // Shape lookup by item name
 shapeLookupKategorie = new Map([
   // Militärausgaben
-  ["Kampfflugzeug",       "}"],
-  ["Panzer",         "{"],
-  ["Bombe",       "~"],
-  ["Soldat",         "_"],
+  ["Kampfflugzeug", "}"],
+  ["Panzer", "{"],
+  ["Bombe", "~"],
+  ["Soldat", "_"],
   ["Flugabwehrgeschütz", "|"],
 
   // Sozialausgaben
-  ["Pflegekräfte",       "iGqab;Jp"],
+  ["Pflegekräfte", "iGqab;Jp"],
   ["LehrerInnen", "BhNAHjc"],
-  ["Schul- und Studienplätze",     "DH1234567890"],
+  ["Schul- und Studienplätze", "DH1234567890"],
 ])
 
 // Default fallback
