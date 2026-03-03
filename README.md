@@ -6,7 +6,7 @@ An interactive ISOTYPE visualization comparing Austrian military spending to soc
 
 ## What it does
 
-Select a military expense (e.g. a fighter jet at €90M) and a social spending category (e.g. teacher salaries at €0.3M/year). The visualization shows how many units of the social good could be funded with the same budget — using pictographic glyphs in the ISOTYPE tradition.
+Select a military expense (e.g. a fighter jet at €90M) and a social spending category (e.g. teacher salaries at €0.3M/year). The visualization shows how many units of the social good could be funded with the same budget — using pictographic glyphs in the ISOTYPE tradition. Beware: The data used is just mock-up data for now!
 
 ## Getting Started
 
